@@ -3,10 +3,8 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinLengthValidator
 from django.db import models
 
-from .validators import (
-    username_name_list_validator,
-    username_pattern_validation,
-)
+from .validators import (username_name_list_validator,
+                         username_pattern_validation)
 
 
 class CustomUser(AbstractUser):
@@ -25,10 +23,8 @@ class CustomUser(AbstractUser):
             f"""Введите юзернейм пользователя 
             (не более {settings.DEFAULT_MAX_LENGTH} символов)"""
         ),
-        blank=False,
-        null=False,
-        unique=True,
         max_length=settings.DEFAULT_MAX_LENGTH,
+        unique=True,
         validators=[username_pattern_validation, username_name_list_validator],
         error_messages={"unique": settings.UNIQUE_USERNAME},
     )
@@ -38,8 +34,6 @@ class CustomUser(AbstractUser):
             f"""Введите электронный почтовый адрес 
             (не более {settings.EMAIL_MAX_LENGTH} символов)"""
         ),
-        blank=False,
-        null=False,
         unique=True,
         max_length=settings.EMAIL_MAX_LENGTH,
         error_messages={"unique": settings.UNIQUE_EMAIL},
@@ -50,15 +44,7 @@ class CustomUser(AbstractUser):
             f"""Придумайте пароль 
             (не более {settings.DEFAULT_MAX_LENGTH} символов)"""
         ),
-        blank=False,
-        null=False,
         max_length=settings.DEFAULT_MAX_LENGTH,
-        validators=[
-            MinLengthValidator(
-                settings.PASSWORD_MIN_LENGTH,
-                settings.PASSWORD_REQUESTED_LENGTH,
-            ),
-        ],
     )
     first_name = models.CharField(
         verbose_name="Имя пользователя",
@@ -66,8 +52,6 @@ class CustomUser(AbstractUser):
             f"""Введите имя пользователя 
             (не более {settings.DEFAULT_MAX_LENGTH} символов)"""
         ),
-        blank=False,
-        null=False,
         max_length=settings.DEFAULT_MAX_LENGTH,
     )
 
@@ -77,13 +61,11 @@ class CustomUser(AbstractUser):
             f"""Введите фамилию пользователя 
             (не более {settings.DEFAULT_MAX_LENGTH} символов)"""
         ),
-        blank=False,
-        null=False,
         max_length=settings.DEFAULT_MAX_LENGTH,
     )
 
     def __str__(self):
-        return f"{self.username}"
+        return self.username
 
     class Meta:
         ordering = ("-id",)
@@ -113,6 +95,7 @@ class Follow(models.Model):
     )
 
     class Meta:
+        ordering = ("-id",)
         verbose_name = "Подписка на автора"
         verbose_name_plural = "Подписки на авторов"
         constraints = [

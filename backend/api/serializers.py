@@ -1,14 +1,8 @@
 from django.db import IntegrityError
 from django.db.transaction import atomic
 from drf_extra_fields.fields import Base64ImageField
-from recipes.models import (
-    Favorites,
-    Ingredients,
-    IngredientsInRecipe,
-    Recipes,
-    ShoppingCart,
-    Tags,
-)
+from recipes.models import (Favorites, Ingredients, IngredientsInRecipe,
+                            Recipes, ShoppingCart, Tags)
 from rest_framework import exceptions, relations, serializers, status
 from users.models import CustomUser, Follow
 
@@ -18,21 +12,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
     Определение логики сериализации объектов кастомной модели пользователя.
     """
 
-    is_subscribed = serializers.SerializerMethodField(read_only=True)
-
-    def get_is_subscribed(self, obj):
-        """
-        Добавление поля сериализатора, определяющего, является-ли автор запроса
-        подписанным на пользователя, осуществившего запрос или нет. При
-        анонимном запросе, это поле будет иметь значение 'false' для всех
-        пользователей.
-        """
-        request = self.context.get("request", False)
-        return (
-            request
-            and request.user.is_authenticated
-            and request.user.follower.filter(author=obj).exists()
-        )
+    is_subscribed = serializers.BooleanField(default=False, read_only=True)
 
     class Meta:
         model = CustomUser
@@ -81,39 +61,13 @@ class RecipesReadSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
     tags = TagsSerializer(many=True, read_only=True)
     author = CustomUserSerializer(read_only=True)
-    is_favorited = serializers.SerializerMethodField(read_only=True)
-    is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
+    is_favorited = serializers.BooleanField(default=False, read_only=True)
+    is_in_shopping_cart = serializers.BooleanField(
+        default=False, read_only=True
+    )
     ingredients = IngredientsInRecipeReadSerializer(
         many=True, read_only=True, source="ingredient_list"
     )
-
-    def get_is_favorited(self, obj):
-        """
-        Добавление поля сериализатора, определяющего, является-ли рецепт
-        добавленным в избранное пользователя, осуществившего запрос или нет.
-        При анонимном запросе, это поле будет иметь значение 'false' для
-        всех пользователей.
-        """
-        request = self.context.get("request", False)
-        return (
-            request
-            and request.user.is_authenticated
-            and request.user.favorites.filter(recipe=obj).exists()
-        )
-
-    def get_is_in_shopping_cart(self, obj):
-        """
-        Добавление поля сериализатора, определяющего, является-ли рецепт
-        добавленным в корзину пользователя, осуществившего запрос или нет.
-        При анонимном запросе, это поле будет иметь значение 'false' для
-        всех пользователей.
-        """
-        request = self.context.get("request", False)
-        return (
-            request
-            and request.user.is_authenticated
-            and request.user.shopping_list.filter(recipe=obj).exists()
-        )
 
     class Meta:
         model = Recipes
@@ -241,8 +195,9 @@ class RecipesWriteSerializer(serializers.ModelSerializer):
             if int(item["amount"]) <= 0:
                 raise exceptions.ValidationError(
                     {
-                        "amount": ("Количество ингредиентов не"
-                                   " может быть меньше 0")
+                        "amount": (
+                            "Количество ингредиентов не" " может быть меньше 0"
+                        )
                     }
                 )
         return data
@@ -253,8 +208,10 @@ class RecipesWriteSerializer(serializers.ModelSerializer):
         if int(cooking_time) <= 0:
             raise serializers.ValidationError(
                 {
-                    "cooking_time": ("Время приготовления рецепта "
-                                     "не может меньше и равным 0!")
+                    "cooking_time": (
+                        "Время приготовления рецепта "
+                        "не может меньше и равным 0!"
+                    )
                 }
             )
         return data
@@ -285,6 +242,19 @@ class RecipesWriteSerializer(serializers.ModelSerializer):
         return RecipesReadSerializer(instance, context=context).data
 
 
+class RecipeShortRepresentationSerializer(serializers.ModelSerializer):
+    """
+    Определение логики сериализации для отображения сокращенного набора
+    полей для объектов модели рецептов.
+    """
+
+    image = Base64ImageField()
+
+    class Meta:
+        model = Recipes
+        fields = ("id", "name", "image", "cooking_time")
+
+
 class FollowSerializer(CustomUserSerializer):
     """
     Определение логики сериализации для объектов модели подписок пользователя.
@@ -292,8 +262,8 @@ class FollowSerializer(CustomUserSerializer):
     пользователя с помощью параметра эндпоинта 'recipes_limit'.
     """
 
-    recipes = serializers.SerializerMethodField(read_only=True)
-    recipes_count = serializers.SerializerMethodField(read_only=True)
+    recipes_count = serializers.IntegerField(read_only=True)
+    recipes = RecipeShortRepresentationSerializer(many=True, read_only=True)
 
     class Meta(CustomUserSerializer.Meta):
         fields = CustomUserSerializer.Meta.fields + (
@@ -320,40 +290,6 @@ class FollowSerializer(CustomUserSerializer):
                 code=status.HTTP_400_BAD_REQUEST,
             )
         return data
-
-    def get_recipes_count(self, obj):
-        """
-        Добавление поля сериализатора, содержащего подсчет количества рецептов
-        автора.
-        """
-        return obj.recipes.count()
-
-    def get_recipes(self, obj):
-        """
-        Добавление поля сериализатора, содержащего список рецептов автора.
-        """
-        request = self.context.get("request")
-        limit = request.GET.get("recipes_limit")
-        recipes = obj.recipes.all()
-        if limit:
-            recipes = recipes[: int(limit)]
-        serializer = RecipeShortRepresentationSerializer(
-            recipes, many=True, read_only=True
-        )
-        return serializer.data
-
-
-class RecipeShortRepresentationSerializer(serializers.ModelSerializer):
-    """
-    Определение логики сериализации для отображения сокращенного набора
-    полей для объектов модели рецептов.
-    """
-
-    image = Base64ImageField()
-
-    class Meta:
-        model = Recipes
-        fields = ("id", "name", "image", "cooking_time")
 
 
 class BaseFavoritesAndShoppingWriteSerializer(serializers.ModelSerializer):

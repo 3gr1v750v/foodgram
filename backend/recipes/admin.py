@@ -33,7 +33,7 @@ class IngredientsAdmin(admin.ModelAdmin):
         "measurement_unit",
     )
 
-    list_filter = ("name",)
+    search_fields = ("name",)
 
 
 class IngredientsInline(admin.TabularInline):

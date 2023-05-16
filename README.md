@@ -29,7 +29,7 @@
 - Просматривать отдельные страницы рецептов;
 - Фильтровать рецепты по тегам;
 
-Что могут делать авторизованные пользователи
+Что могут делать авторизованные пользователи:
 - Входить в систему под своим логином и паролем;
 - Выходить из системы (разлогиниваться);
 - Менять свой пароль;
@@ -192,7 +192,7 @@ POST/DELETE /api/users/3/subscribe/
 GET /api/ingredients/
 ```
 
-## Локальный запуск проекта (через Docker контейнеры)
+## Локальный запуск проекта (backend в режиме отладки)
 1. Скопируйте репозиторий и перейдите в него в командной строке:
 
 ```
@@ -266,7 +266,7 @@ volumes:
 server {
     listen 80;
     location /api/ {
-        proxy_pass http://host.docker.internal:8000; # эта настройка позволяет обращаться по адресу localhost
+        proxy_pass http://host.docker.internal:8000;
     }
     location /admin/ {
         proxy_pass http://host.docker.internal:8000/admin/;
@@ -333,4 +333,84 @@ python manage.py runserver
 ```
 http://localhost/signin
 ```
+## Локальный запуск проекта (Docker Compose)
+1. Скопируйте репозиторий и перейдите в него в командной строке:
+
+```
+git clone https://github.com/3gr1v750v/foodgram-project-react
+```
+
+```
+cd foodgram-project-react
+```
+
+2. Создайте и активируйте виртуальное окружение:
+
+```
+python -m venv env
+```
+
+```
+source env/bin/activate
+```
+
+3. Установите зависимости из файла requirements.txt:
+
+```
+python -m pip install --upgrade pip
+```
+
+```
+pip install -r requirements.txt
+```
+
+4. Создайте фаил .env в директории проекта 'infra':
+```
+SECRET_KEY = 'secret key used in production'
+DB_ENGINE=django.db.backends.postgresql
+DB_NAME=postgres
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+DB_HOST=localhost
+DB_PORT=5432
+```
+5. Перейдите в папку 'infra' и выполните команду сборки контейнеров:
+```
+cd infra/
+```
+```
+docker compose up -d
+```
+6. Выполните миграции, создайте суперпользователя и соберите статику:
+```
+docker compose exec backend python manage.py makemigrations
+```
+```
+docker compose exec backend python manage.py migrate
+```
+```
+docker compose exec backend python manage.py createsuperuser
+```
+```
+docker compose exec backend python manage.py collectstatic --no-input
+```
+
+Теперь вы можете зайти на сайт:
+- Документация API: http://localhost/api/docs/redoc.html
+- Панель администратора: http://localhost/admin/
+- Главная страница сайта: http://localhost/recipes
+
+6. Выполните миграцию базы данных Ingredients:
+- Скопируйте папку ```data``` в контейнер ```backend```
+```
+cd foodgram-project-react
+```
+```
+docker cp data/ <container_id>:data/
+```
+- Выполните команду миграции данных:
+```
+docker compose exec backend python manage.py importjson
+```
+В консоли IDE вы должны получить сообщение об успешной миграции данных.
 

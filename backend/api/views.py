@@ -1,39 +1,26 @@
 from urllib.parse import unquote
 
 from django.conf import settings
-from django.db.models import Sum
+from django.db.models import Count, Exists, OuterRef, Sum, Value
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
-from recipes.models import (
-    Favorites,
-    Ingredients,
-    IngredientsInRecipe,
-    Recipes,
-    ShoppingCart,
-    Tags,
-)
+from recipes.models import (Favorites, Ingredients, IngredientsInRecipe,
+                            Recipes, ShoppingCart, Tags)
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import (
-    IsAuthenticated,
-    IsAuthenticatedOrReadOnly,
-)
+from rest_framework.permissions import (IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 from users.models import CustomUser, Follow
 
 from .filters import RecipeFilter
 from .pagination import LimitPageNumberPagination
 from .permissions import AuthorOrReadOnly
-from .serializers import (
-    CustomUserSerializer,
-    FavoritesWriteSerializer,
-    FollowSerializer,
-    IngredientSerializer,
-    RecipesReadSerializer,
-    RecipesWriteSerializer,
-    ShoppingCartWriteSerializer,
-    TagsSerializer,
-)
+from .serializers import (CustomUserSerializer, FavoritesWriteSerializer,
+                          FollowSerializer, IngredientSerializer,
+                          RecipeShortRepresentationSerializer,
+                          RecipesReadSerializer, RecipesWriteSerializer,
+                          ShoppingCartWriteSerializer, TagsSerializer)
 from .utils import ingredients_export, serializer_add_delete
 
 
@@ -51,8 +38,17 @@ class CustomUserViewSet(UserViewSet):
         """
         Переопределение запроса набора объектов пользователей (по умолчанию
         "list" запрос djoser отображает данные только одного пользователя).
+        Добавление поля is_subscribed для определения наличия подписки
+        на других авторов.
         """
-        return CustomUser.objects.all()
+
+        return CustomUser.objects.annotate(
+            is_subscribed=Exists(
+                self.request.user.follower.filter(author=OuterRef("pk"))
+            )
+            if self.request.user.is_authenticated
+            else Value(False)
+        )
 
     @action(
         detail=True,
@@ -85,16 +81,36 @@ class CustomUserViewSet(UserViewSet):
         Эндпоинт для отображения списка авторов на которых подписан
         пользователь. Сериализатор дополнительно отображает список рецептов
         пользователей и их общее количество для каждого автора в списке.
+        Количество рецептов в эндпоинте может быть ограничено запросом
+        'recipes_limit=<integer>'.
         """
-        return self.get_paginated_response(
-            FollowSerializer(
-                self.paginate_queryset(
-                    CustomUser.objects.filter(following__user=request.user)
-                ),
-                many=True,
-                context={"request": request},
-            ).data
+        queryset = (
+            CustomUser.objects.filter(following__user=request.user)
+            .prefetch_related("recipes")
+            .annotate(is_subscribed=Value(True))
+            .annotate(recipes_count=Count("recipes"))
+            .order_by("-id")
         )
+        serializer = FollowSerializer(
+            self.paginate_queryset(queryset),
+            many=True,
+            context={"request": request},
+        )
+        serialized_data = serializer.data
+
+        recipes_limit = request.query_params.get("recipes_limit")
+        if recipes_limit:
+            recipes_limit = int(recipes_limit)
+            for data in serialized_data:
+                user = get_object_or_404(CustomUser, id=data["id"])
+                recipe_serializer = RecipeShortRepresentationSerializer(
+                    user.recipes.all()[:recipes_limit],
+                    many=True,
+                    read_only=True,
+                )
+                data["recipes"] = recipe_serializer.data
+
+        return self.get_paginated_response(serialized_data)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -146,10 +162,29 @@ class RecipesViewSet(viewsets.ModelViewSet):
     два отдельных серилизатора для чтения и записи объектов модели.
     """
 
-    queryset = Recipes.objects.all()
     permission_classes = (AuthorOrReadOnly,)
     filterset_class = RecipeFilter
     pagination_class = LimitPageNumberPagination
+
+    def get_queryset(self):
+        """
+        Добавление поля is_favorited для определения добавления рецепта
+        в избранное.
+        Добавление поля is_in_shopping_cart для определения добавления рецепта
+        в список покупок.
+        """
+        return Recipes.objects.annotate(
+            is_favorited=Exists(
+                self.request.user.favorites.filter(recipe=OuterRef("pk"))
+            )
+            if self.request.user.is_authenticated
+            else Value(False),
+            is_in_shopping_cart=Exists(
+                self.request.user.shopping_list.filter(recipe=OuterRef("pk"))
+            )
+            if self.request.user.is_authenticated
+            else Value(False),
+        )
 
     def get_serializer_class(self):
         """

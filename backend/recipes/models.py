@@ -1,13 +1,9 @@
 from django.conf import settings
 from django.core.validators import MinValueValidator
-from django.db import IntegrityError, models
-from django.dispatch import receiver
-from django.utils.text import slugify
-from transliterate import translit
+from django.db import models
 from users.models import CustomUser
 
-from .utils import delete_image
-from .validators import HEX_validation
+from .validators import hex_validation
 
 
 class BasicNameModel(models.Model):
@@ -16,8 +12,6 @@ class BasicNameModel(models.Model):
     name = models.CharField(
         verbose_name="Название",
         help_text="Введите название",
-        blank=False,
-        null=False,
         max_length=settings.CONTENT_MAX_LENGTH,
         error_messages={"unique": settings.UNIQUE_VALUE},
     )
@@ -40,19 +34,16 @@ class Tags(BasicNameModel):
         verbose_name="HEX код цвета",
         help_text="Введите HEX код цвета (например: #49B64E)",
         unique=True,
-        blank=False,
-        null=False,
         max_length=settings.HEX_CODE_MAX_LENGTH,
         error_messages={"unique": settings.UNIQUE_VALUE},
         validators=[
-            HEX_validation,
+            hex_validation,
         ],
     )
     slug = models.SlugField(
         verbose_name="Название slug",
         help_text="Введите название slug",
         unique=True,
-        blank=True,
         max_length=settings.CONTENT_MAX_LENGTH,
         error_messages={"unique": settings.UNIQUE_VALUE},
     )
@@ -66,19 +57,6 @@ class Tags(BasicNameModel):
     def __str__(self):
         return f"{self.name}"
 
-    def save(self, *args, **kwargs):
-        """Если поле slug останется пустым при создании Тега, то оно
-        заполнится автоматически. Если значение дано на русском языке
-        оно будет автоматически транслитировано."""
-        if not self.slug:
-            self.slug = slugify(translit(str(self.name), "ru", reversed=True))[
-                : settings.CONTENT_MAX_LENGTH
-            ]
-        try:
-            super().save(*args, **kwargs)
-        except IntegrityError:
-            raise IntegrityError("Такой SLUG уже существует!")
-
 
 class Ingredients(BasicNameModel):
     """
@@ -89,8 +67,6 @@ class Ingredients(BasicNameModel):
     measurement_unit = models.CharField(
         verbose_name="Единица измерения",
         help_text="Введите единицу измерения ингредиента.",
-        blank=False,
-        null=False,
         max_length=settings.CONTENT_MAX_LENGTH,
     )
 
@@ -118,15 +94,12 @@ class Recipes(BasicNameModel):
         CustomUser,
         verbose_name="Автор рецепта",
         help_text="Введите автора рецепта",
-        on_delete=models.SET_NULL,
-        null=True,
+        on_delete=models.CASCADE,
         related_name="recipes",
     )
     text = models.TextField(
         verbose_name="Описание приготовления блюда",
         help_text="Введите описание приготовления блюда",
-        blank=False,
-        null=False,
     )
     tags = models.ManyToManyField(Tags, related_name="tags")
     ingredients = models.ManyToManyField(
@@ -143,8 +116,6 @@ class Recipes(BasicNameModel):
     cooking_time = models.IntegerField(
         verbose_name="Время приготовления (в минутах)",
         help_text="Введите время приготовления блюда в минутах",
-        blank=False,
-        null=False,
         validators=[MinValueValidator(1, settings.LESS_THAN_ONE)],
     )
 
@@ -161,12 +132,6 @@ class Recipes(BasicNameModel):
                 name="unique_for_author",
             ),
         )
-
-
-@receiver(models.signals.post_delete, sender=Recipes)
-def delete_recipe_image(sender, instance, **kwargs):
-    """Сигнал для удаления картинки при удалении рецепта."""
-    delete_image(instance)
 
 
 class IngredientsInRecipe(models.Model):
@@ -187,8 +152,6 @@ class IngredientsInRecipe(models.Model):
     amount = models.PositiveSmallIntegerField(
         verbose_name="Количество",
         help_text="Введите количество ингредиентов",
-        blank=False,
-        null=False,
         validators=[
             MinValueValidator(
                 settings.INGREDIENT_MIN_AMOUNT, settings.LESS_THAN_ONE

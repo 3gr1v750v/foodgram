@@ -132,3 +132,5 @@ dmypy.json
 .idea
 /backend/media/
 /infra - dev/
+/backend/sent_emails/
+/infra - local/

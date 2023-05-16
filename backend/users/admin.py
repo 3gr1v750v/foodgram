@@ -14,7 +14,7 @@ class CustomUserAdmin(UserAdmin):
         "first_name",
         "last_name",
     )
-    list_filter = ("username", "email")
+    search_fields = ("username", "email")
 
 
 @admin.register(Follow)

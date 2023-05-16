@@ -1,18 +1,23 @@
 import json
-import os
+from pathlib import Path
 
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from recipes.models import Ingredients
 
-FILE_DIR = os.path.join(settings.BASE_DIR, "../data")
-JSON_FILE_PATH = os.path.join(FILE_DIR, "ingredients.json")
+FILE_DIR = Path(settings.BASE_DIR).parent / "data"
+JSON_FILE_PATH = FILE_DIR / "ingredients.json"
 
 
 class Command(BaseCommand):
     help = "Импорт данных из файла JSON в таблицу Ingredients."
 
     def handle(self, *args, **kwargs):
+        if not JSON_FILE_PATH.exists():
+            raise CommandError(
+                f"JSON файл по адресу {FILE_DIR} - {JSON_FILE_PATH} не был найден."
+            )
+
         if Ingredients.objects.exists():
             raise CommandError("Очистите базу перед загрузкой JSON файла.")
 
@@ -26,14 +31,10 @@ class Command(BaseCommand):
                     ingredients, ignore_conflicts=True
                 )
 
-        except FileNotFoundError:
-            raise CommandError(
-                "JSON файл по адресу <project_name>/data/.. не был найден."
-            )
-
         except Exception as e:
             raise CommandError(
-                "Ошибка выполнения команды importjson. Проверьте целостность JSON файла."
+                "Ошибка выполнения команды importjson. Проверьте целостность "
+                "JSON файла."
             ) from e
 
         self.stdout.write(
