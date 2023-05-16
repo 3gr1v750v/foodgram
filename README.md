@@ -400,7 +400,7 @@ docker compose exec backend python manage.py collectstatic --no-input
 - Панель администратора: http://localhost/admin/
 - Главная страница сайта: http://localhost/recipes
 
-6. Выполните миграцию базы данных Ingredients:
+7. Выполните миграцию базы данных Ingredients:
 - Скопируйте папку ```data``` в контейнер ```backend```
 ```
 cd foodgram-project-react
