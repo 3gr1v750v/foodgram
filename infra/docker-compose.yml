@@ -25,7 +25,7 @@ services:
         - ./.env
 
   frontend:
-    image: "${DOCKER_USERNAME}/foodgram_backend:latest"
+    image: "${DOCKER_USERNAME}/foodgram_frontend:latest"
     volumes:
       - ../frontend/:/app/result_build/
     depends_on:
