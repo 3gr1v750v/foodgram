@@ -1,8 +1,8 @@
 import json
-from pathlib import Path
 
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
+
 from recipes.models import Ingredients
 
 JSON_FILE_PATH = settings.DATABASE_FILE_UPLOAD_FOLDER / "ingredients.json"

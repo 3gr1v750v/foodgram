@@ -92,7 +92,8 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.TokenAuthentication",
     ],
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "DEFAULT_PAGINATION_CLASS":
+        "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 6,
 }
 
@@ -163,7 +164,9 @@ UNIQUE_VALUE = "Такое значение уже существует!"
 UNIQUE_EMAIL = (
     "Пользователь с таким электронным почтовым адресом уже существует."
 )
-PASSWORD_REQUESTED_LENGTH = f"Придумайте пароль длинной от {PASSWORD_MIN_LENGTH} до {DEFAULT_MAX_LENGTH} символов."
+PASSWORD_REQUESTED_LENGTH = (
+    f"Придумайте пароль длинной от {PASSWORD_MIN_LENGTH} "
+    f"до {DEFAULT_MAX_LENGTH} символов.")
 LESS_THAN_ONE = "Значение должно быть больше 0!"
 
 DJOSER = {

@@ -1,10 +1,11 @@
 from datetime import date
 
 from django.shortcuts import HttpResponse
-from recipes.models import Recipes
 from rest_framework import response, status
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
+
+from recipes.models import Recipes
 
 
 def serializer_add_delete(serializer_name, model, request, recipe_id):

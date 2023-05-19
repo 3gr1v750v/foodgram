@@ -1,12 +1,9 @@
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import MinLengthValidator
 from django.db import models
 
-from .validators import (
-    username_name_list_validator,
-    username_pattern_validation,
-)
+from .validators import (username_name_list_validator,
+                         username_pattern_validation)
 
 
 class CustomUser(AbstractUser):
@@ -22,7 +19,7 @@ class CustomUser(AbstractUser):
     username = models.CharField(
         verbose_name="Юзернейм",
         help_text=(
-            f"""Введите юзернейм пользователя 
+            f"""Введите юзернейм пользователя
             (не более {settings.DEFAULT_MAX_LENGTH} символов)"""
         ),
         max_length=settings.DEFAULT_MAX_LENGTH,
@@ -33,7 +30,7 @@ class CustomUser(AbstractUser):
     email = models.EmailField(
         verbose_name="Электронный почтовый адрес",
         help_text=(
-            f"""Введите электронный почтовый адрес 
+            f"""Введите электронный почтовый адрес
             (не более {settings.EMAIL_MAX_LENGTH} символов)"""
         ),
         unique=True,
@@ -43,7 +40,7 @@ class CustomUser(AbstractUser):
     password = models.CharField(
         verbose_name="Пароль",
         help_text=(
-            f"""Придумайте пароль 
+            f"""Придумайте пароль
             (не более {settings.DEFAULT_MAX_LENGTH} символов)"""
         ),
         max_length=settings.DEFAULT_MAX_LENGTH,
@@ -51,7 +48,7 @@ class CustomUser(AbstractUser):
     first_name = models.CharField(
         verbose_name="Имя пользователя",
         help_text=(
-            f"""Введите имя пользователя 
+            f"""Введите имя пользователя
             (не более {settings.DEFAULT_MAX_LENGTH} символов)"""
         ),
         max_length=settings.DEFAULT_MAX_LENGTH,
@@ -60,7 +57,7 @@ class CustomUser(AbstractUser):
     last_name = models.CharField(
         verbose_name="Фамилия пользователя",
         help_text=(
-            f"""Введите фамилию пользователя 
+            f"""Введите фамилию пользователя
             (не более {settings.DEFAULT_MAX_LENGTH} символов)"""
         ),
         max_length=settings.DEFAULT_MAX_LENGTH,

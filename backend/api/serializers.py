@@ -1,6 +1,8 @@
 from django.db import IntegrityError
 from django.db.transaction import atomic
 from drf_extra_fields.fields import Base64ImageField
+from rest_framework import exceptions, relations, serializers, status
+
 from recipes.models import (
     Favorites,
     Ingredients,
@@ -9,7 +11,6 @@ from recipes.models import (
     ShoppingCart,
     Tags,
 )
-from rest_framework import exceptions, relations, serializers, status
 from users.models import CustomUser, Follow
 
 
