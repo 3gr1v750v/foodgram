@@ -168,9 +168,9 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
         с параметрами запроса.
         """
         name = self.request.query_params.get("name")
-        queryset = super().queryset()
+        queryset = super().get_queryset()
         if name:
-            if name[0] == "%":
+            if name.startswith("%"):
                 name = unquote(name)
             else:
                 name = name.translate(settings.INCORRECT_LAYOUT)
