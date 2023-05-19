@@ -4,6 +4,7 @@ from django.shortcuts import HttpResponse
 from recipes.models import Recipes
 from rest_framework import response, status
 from rest_framework.generics import get_object_or_404
+from rest_framework.response import Response
 
 
 def serializer_add_delete(serializer_name, model, request, recipe_id):
@@ -49,3 +50,10 @@ def ingredients_export(self, request, ingredients):
     )
     response["Content-Disposition"] = f'attachment; filename="{filename}"'
     return response
+
+
+def prihibited_method_response(request):
+    message = "Обращение к эндпоинту с данным методом не разрешено."
+    return Response(
+        {"detail": message}, status=status.HTTP_405_METHOD_NOT_ALLOWED
+    )

@@ -15,7 +15,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     "recipes.apps.RecipesConfig",
     "users.apps.UsersConfig",
     "api.apps.ApiConfig",
+    "drf_yasg",
 ]
 
 MIDDLEWARE = [
@@ -76,7 +77,7 @@ DATABASES = {
         "NAME": os.getenv("DB_NAME", default="postgres"),
         "USER": os.getenv("POSTGRES_USER", default="postgres"),
         "PASSWORD": os.getenv("POSTGRES_PASSWORD", default="postgres"),
-        "HOST": os.getenv("DB_HOST", default="db"),
+        "HOST": os.getenv("DB_HOST", default="localhost"),
         "PORT": os.getenv("DB_PORT", default=5432),
     }
 }
@@ -143,6 +144,8 @@ MEDIA_ROOT = Path(BASE_DIR) / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+DATABASE_FILE_UPLOAD_FOLDER = Path(BASE_DIR).parent / "data"
+
 # Backend Model constant values for validation
 DEFAULT_MAX_LENGTH = 150
 EMAIL_MAX_LENGTH = 254
@@ -167,6 +170,7 @@ DJOSER = {
     "PERMISSIONS": {
         "user": ["rest_framework.permissions.IsAuthenticated"],
         "user_list": ["rest_framework.permissions.AllowAny"],
+        "activation": ["rest_framework.permissions.IsAdminUser"],
     },
     "SERIALIZERS": {
         "current_user": "api.serializers.CustomUserSerializer",

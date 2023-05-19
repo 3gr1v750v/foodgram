@@ -1,12 +1,12 @@
 from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models
-from users.models import CustomUser
 
+from users.models import CustomUser
 from .validators import hex_validation
 
 
-class BasicNameModel(models.Model):
+class BaseNameModel(models.Model):
     """Абстрактная модель. Добавляет названия."""
 
     name = models.CharField(
@@ -23,7 +23,7 @@ class BasicNameModel(models.Model):
         return self.name
 
 
-class Tags(BasicNameModel):
+class Tags(BaseNameModel):
     """
     Модель Тэгов для рецептов. Например: 'Завтрак', 'Обед'.
     В модель добавлена функция автоматического присваивания SLUG при
@@ -58,7 +58,7 @@ class Tags(BasicNameModel):
         return f"{self.name}"
 
 
-class Ingredients(BasicNameModel):
+class Ingredients(BaseNameModel):
     """
     Модель названий ингредиентов и соответствующим им единицам измерения.
     Единица измерения выбираются из пресета значений класса MeasurementUnit.
@@ -82,7 +82,7 @@ class Ingredients(BasicNameModel):
         ]
 
 
-class Recipes(BasicNameModel):
+class Recipes(BaseNameModel):
     """Модель рецептов. Дата публикации присваивается автоматически."""
 
     pub_date = models.DateTimeField(
@@ -110,8 +110,6 @@ class Recipes(BasicNameModel):
     image = models.ImageField(
         verbose_name="Картинка",
         upload_to="recipes/images/",
-        blank=True,
-        null=True,
     )
     cooking_time = models.IntegerField(
         verbose_name="Время приготовления (в минутах)",

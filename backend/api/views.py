@@ -4,24 +4,43 @@ from django.conf import settings
 from django.db.models import Count, Exists, OuterRef, Sum, Value
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
-from recipes.models import (Favorites, Ingredients, IngredientsInRecipe,
-                            Recipes, ShoppingCart, Tags)
+from recipes.models import (
+    Favorites,
+    Ingredients,
+    IngredientsInRecipe,
+    Recipes,
+    ShoppingCart,
+    Tags,
+)
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import (IsAuthenticated,
-                                        IsAuthenticatedOrReadOnly)
+from rest_framework.permissions import (
+    IsAdminUser,
+    IsAuthenticated,
+    IsAuthenticatedOrReadOnly,
+)
 from rest_framework.response import Response
 from users.models import CustomUser, Follow
 
 from .filters import RecipeFilter
 from .pagination import LimitPageNumberPagination
 from .permissions import AuthorOrReadOnly
-from .serializers import (CustomUserSerializer, FavoritesWriteSerializer,
-                          FollowSerializer, IngredientSerializer,
-                          RecipeShortRepresentationSerializer,
-                          RecipesReadSerializer, RecipesWriteSerializer,
-                          ShoppingCartWriteSerializer, TagsSerializer)
-from .utils import ingredients_export, serializer_add_delete
+from .serializers import (
+    CustomUserSerializer,
+    FavoritesWriteSerializer,
+    FollowSerializer,
+    IngredientSerializer,
+    RecipeShortRepresentationSerializer,
+    RecipesReadSerializer,
+    RecipesWriteSerializer,
+    ShoppingCartWriteSerializer,
+    TagsSerializer,
+)
+from .utils import (
+    ingredients_export,
+    prihibited_method_response,
+    serializer_add_delete,
+)
 
 
 class CustomUserViewSet(UserViewSet):
@@ -33,6 +52,16 @@ class CustomUserViewSet(UserViewSet):
     serializer_class = CustomUserSerializer
     pagination_class = LimitPageNumberPagination
     permission_classes = (IsAuthenticatedOrReadOnly,)
+
+    def update(self, request, *args, **kwargs):
+        return prihibited_method_response(request)
+
+    def partial_update(self, request, *args, **kwargs):
+        return prihibited_method_response(request)
+
+    @action(detail=False, methods=["post"], url_path="set_email")
+    def set_email(self, request):
+        return prihibited_method_response(request)
 
     def get_queryset(self):
         """
@@ -139,7 +168,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
         с параметрами запроса.
         """
         name = self.request.query_params.get("name")
-        queryset = self.queryset
+        queryset = super().queryset()
         if name:
             if name[0] == "%":
                 name = unquote(name)

@@ -5,8 +5,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from recipes.models import Ingredients
 
-FILE_DIR = Path(settings.BASE_DIR).parent / "data"
-JSON_FILE_PATH = FILE_DIR / "ingredients.json"
+JSON_FILE_PATH = settings.DATABASE_FILE_UPLOAD_FOLDER / "ingredients.json"
 
 
 class Command(BaseCommand):
@@ -14,8 +13,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         if not JSON_FILE_PATH.exists():
-            raise CommandError(
-                f"JSON файл по адресу {FILE_DIR} - {JSON_FILE_PATH} не был найден."
+            raise FileNotFoundError(
+                f"JSON файл по адресу {JSON_FILE_PATH} не был найден."
             )
 
         if Ingredients.objects.exists():
@@ -31,10 +30,10 @@ class Command(BaseCommand):
                     ingredients, ignore_conflicts=True
                 )
 
-        except Exception as e:
+        except json.JSONDecodeError as e:
             raise CommandError(
-                "Ошибка выполнения команды importjson. Проверьте целостность "
-                "JSON файла."
+                f"Ошибка выполнения команды importjson. "
+                f"Ошибка разбора JSON: {str(e)}"
             ) from e
 
         self.stdout.write(
