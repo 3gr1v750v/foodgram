@@ -46,6 +46,10 @@ class IngredientsInRecipeReadSerializer(serializers.ModelSerializer):
     Определение логики сериализации для чтения (отображения) объектов модели
     ингредиентов в рецепте.
     """
+    id = serializers.PrimaryKeyRelatedField(
+        read_only=True,
+        source='ingredient'
+    )
 
     name = serializers.SlugRelatedField(
         source="ingredient", slug_field="name", read_only=True
