@@ -1,4 +1,17 @@
 # Проект Foodgram ("Продуктовый помощник")
+![workflow bagde](https://github.com/3gr1v750v/foodgram-project-react/actions/workflows/foodgram_workflow.yml/badge.svg)
+
+## Стек технологий
+[![Python](https://img.shields.io/badge/-Python-464646?style=flat-square&logo=Python)](https://www.python.org/)
+[![Django](https://img.shields.io/badge/-Django-464646?style=flat-square&logo=Django)](https://www.djangoproject.com/)
+[![Django REST Framework](https://img.shields.io/badge/-Django%20REST%20Framework-464646?style=flat-square&logo=Django%20REST%20Framework)](https://www.django-rest-framework.org/)
+[![PostgreSQL](https://img.shields.io/badge/-PostgreSQL-464646?style=flat-square&logo=PostgreSQL)](https://www.postgresql.org/)
+[![Nginx](https://img.shields.io/badge/-NGINX-464646?style=flat-square&logo=NGINX)](https://nginx.org/ru/)
+[![gunicorn](https://img.shields.io/badge/-gunicorn-464646?style=flat-square&logo=gunicorn)](https://gunicorn.org/)
+[![docker](https://img.shields.io/badge/-Docker-464646?style=flat-square&logo=docker)](https://www.docker.com/)
+[![GitHub%20Actions](https://img.shields.io/badge/-GitHub%20Actions-464646?style=flat-square&logo=GitHub%20actions)](https://github.com/features/actions)
+
+![foodgram_main_page_screenshot](https://github.com/3gr1v750v/foodgram-project-react/assets/110385345/64352295-3d16-4051-a89e-7732f724d09d)
 
 ## Описание проекта
 Приложение Foodgram ("Продуктовый помощник"): сайт, на котором пользователи 
@@ -515,6 +528,26 @@ d. Импортируйте данные
 docker compose exec backend python manage.py importjson
 ```
 
+4. Добавьте API документацию:
+
+а. Скопируйте папку ```docs``` на ваш сервер
+```
+scp -r имя_папки username@public_id:/home/username/
+```
+b. Найдите id контейнера nginx
+```
+docker container ls
+```
+c. Скопируйте данные из папки ```docs``` в контейнер nginx
+```
+docker cp docs/. <container_id>:/usr/share/nginx/html/api/docs
+
+```
+d. Проверьте, что данные скопировались корректно
+```
+sudo docker exec <container_name> ls /usr/share/nginx/html/api/docs
+```
+
 ### Github Actions CI:
 
 Запуск workflow осуществляется тригером 'push' в любую ветку репозитория:
@@ -529,7 +562,7 @@ docker compose exec backend python manage.py importjson
 - Разворачивание контейнеров на сервере
 
 Теперь вы можете зайти на сайт (адрес сервера дан для примера):
-- Документация API: http://localhost/api/docs/redoc.html
+- Документация API: http://158.160.35.211/api/docs/redoc.html
 - Панель администратора: http://158.160.35.211/admin
 - Главная страница сайта: http://158.160.35.211/recipes
 
