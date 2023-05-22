@@ -371,17 +371,21 @@ DB_ENGINE=django.db.backends.postgresql
 DB_NAME=postgres
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=postgres
-DB_HOST=localhost
+DB_HOST=db
 DB_PORT=5432
 ```
-5. Перейдите в папку 'infra' и выполните команду сборки контейнеров:
+5. Измените адрес локального сервера в nginx.conf
+```
+    server_name 127.0.0.1;
+```
+6. Перейдите в папку 'infra' и выполните команду сборки контейнеров:
 ```
 cd infra/
 ```
 ```
 docker compose up -d
 ```
-6. Выполните миграции, создайте суперпользователя и соберите статику:
+7. Выполните миграции, создайте суперпользователя и соберите статику:
 ```
 docker compose exec backend python manage.py makemigrations
 ```
@@ -400,7 +404,7 @@ docker compose exec backend python manage.py collectstatic --no-input
 - Панель администратора: http://localhost/admin/
 - Главная страница сайта: http://localhost/recipes
 
-7. Выполните миграцию базы данных Ingredients:
+8. Выполните миграцию базы данных Ingredients:
 - Скопируйте папку ```data``` в контейнер ```backend```
 ```
 cd foodgram-project-react
@@ -413,4 +417,119 @@ docker cp data/ <container_id>:data/
 docker compose exec backend python manage.py importjson
 ```
 В консоли IDE вы должны получить сообщение об успешной миграции данных.
+
+## Разворачивание проекта на сервере (Docker Compose)
+
+### Настройка VM (Ubuntu 22.04) для Docker Compose V2:
+Документация: https://docs.docker.com/compose/install/linux/
+
+- Остановите работу nginx, если он у вас установлен и запущен
+
+```sudo systemctl stop nginx```
+
+- Установите последние обновления на виртуальную машину
+
+```sudo apt update```
+
+```sudo apt upgrade -y```
+
+- Установите Docker
+
+```sudo apt install docker.io```
+
+- Установите Docker Compose V2
+
+```sudo mkdir -p /usr/local/lib/docker/cli-plugins```
+
+```sudo curl -SL https://github.com/docker/compose/releases/download/v2.17.2/docker-compose-linux-x86_64 -o /usr/local/lib/docker/cli-plugins/docker-compose```
+
+```sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose```
+
+### Подготовка для запуска проекта на VM:
+- Укажите публичный адрес вашего сервера в nginx/default.conf
+
+```server_name <ip вашего сервера>;```
+
+- Скопируйте файлы docker-compose.yaml и nginx/default.conf из вашего проекта на сервер в home/<ваш_username>/docker-compose.yaml и home/<ваш_username>/nginx/default.conf соответственно. Если вы копируете файлы этого проекта, не забудьте поменять конфигурацию параметра 'image' в docker-compose.yaml.
+
+```scp my_file username@host:<путь-на-сервере>```
+
+например
+
+```scp docker-compose.yml <username>@public_ip:/home/<username>/```
+
+### Подготовка "Actions secrets and variables":
+- В разделе 'Settings' вашего репозитория, пройдите в раздел 'Secrets and Variables' - 'Actions' и создайте следующие 'repository secrets'
+
+SSH_KEY можно получить командой ````'cat ~/.ssh/id_rsa'```` на машине у которой есть доступ к серверу. Необходимо скопировать всё, включая начало и конец ответа
+```
+DOCKER_PASSWORD = <dockerhub password>
+DOCKER_USERNAME = <dockerhub username>
+HOST = <VM public IP>
+USER = <VM login>
+PASSPHRASE = <VM password>
+SECRET_KEY = <Django secret key>
+SSH_KEY = <SSH key of the machine that has access to VM>
+DB_ENGINE = django.db.backends.postgresql
+DB_NAME = <database name>
+POSTGRES_USER = <user name>
+POSTGRES_PASSWORD = <password>
+DB_HOST = <data base host> eg: db
+DB_PORT = <database port> eg: 5432
+```
+
+### Работа с контейнерами на сервере
+1. Зайдите на ваш сервер 
+```ssh your_login@public_ip```
+
+2. Если вы скопировали файлы настрек docker в главную директорию, то можете сразу применять 
+команды, в противном случае, пройдите к директорию, где у вас находится фаил docker-compose.yml
+```
+docker compose exec backend python manage.py makemigrations
+```
+```
+docker compose exec backend python manage.py migrate
+```
+```
+docker compose exec backend python manage.py createsuperuser
+```
+```
+docker compose exec backend python manage.py collectstatic --no-input
+```
+
+3. Осуществите миграцию данных таблицы "Ингредиенты" на сервере.
+а. Скопируйте папку ```data``` на ваш сервер
+```
+scp -r имя_папки username@public_id:/home/username/
+```
+b. Найдите id контейнера backend
+```
+docker container ls
+```
+c. Скопируйте папку ```data``` в контейнер
+```
+docker cp data/ <container_id>:data/
+```
+d. Импортируйте данные
+```
+docker compose exec backend python manage.py importjson
+```
+
+### Github Actions CI:
+
+Запуск workflow осуществляется тригером 'push' в любую ветку репозитория:
+- Проверка lint по PEP8
+- Создание образа докера (Image) для ./backend
+- Создание образа докера (Image) для ./frontend
+- Сохранение образов докера (Image) в репозитории docker hub
+- Подключение к серверу (виртуальная машина на ubuntu 22.04)
+- Остановка работы текущих контейнеров на сервере, очищение временных образов
+- Загрузка нового образа на сервер из репозитория docker hub
+- Настройка .env файла на сервере
+- Разворачивание контейнеров на сервере
+
+Теперь вы можете зайти на сайт (адрес сервера дан для примера):
+- Документация API: http://localhost/api/docs/redoc.html
+- Панель администратора: http://158.160.35.211/admin
+- Главная страница сайта: http://158.160.35.211/recipes
 
