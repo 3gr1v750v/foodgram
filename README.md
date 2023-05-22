@@ -511,6 +511,7 @@ docker compose exec backend python manage.py collectstatic --no-input
 ```
 
 3. Осуществите миграцию данных таблицы "Ингредиенты" на сервере.
+
 а. Скопируйте папку ```data``` на ваш сервер
 ```
 scp -r имя_папки username@public_id:/home/username/
