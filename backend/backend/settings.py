@@ -76,7 +76,7 @@ DATABASES = {
         "NAME": os.getenv("DB_NAME", default="postgres"),
         "USER": os.getenv("POSTGRES_USER", default="postgres"),
         "PASSWORD": os.getenv("POSTGRES_PASSWORD", default="postgres"),
-        "HOST": os.getenv("DB_HOST", default="db"),
+        "HOST": os.getenv("DB_HOST", default="localhost"),
         "PORT": os.getenv("DB_PORT", default=5432),
     }
 }
@@ -170,9 +170,14 @@ LESS_THAN_ONE = "Значение должно быть больше 0!"
 
 DJOSER = {
     "PERMISSIONS": {
-        "user": ["rest_framework.permissions.IsAuthenticated"],
-        "user_list": ["rest_framework.permissions.AllowAny"],
-        "activation": ["rest_framework.permissions.IsAdminUser"],
+        'user': ['rest_framework.permissions.IsAuthenticated'],
+        'user_list': ['rest_framework.permissions.AllowAny'],
+        'activation': [''],
+        'password_reset': [''],
+        'password_reset_confirm': [''],
+        'username_reset': [''],
+        'username_reset_confirm': [''],
+        'set_username': [''],
     },
     "SERIALIZERS": {
         "current_user": "api.serializers.CustomUserSerializer",
