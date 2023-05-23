@@ -38,7 +38,7 @@ from .serializers import (
 )
 from .utils import (
     ingredients_export,
-    prihibited_method_response,
+    prohibited_method_response,
     serializer_add_delete,
 )
 
@@ -54,14 +54,14 @@ class CustomUserViewSet(UserViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def update(self, request, *args, **kwargs):
-        return prihibited_method_response(request)
+        return prohibited_method_response(request)
 
     def partial_update(self, request, *args, **kwargs):
-        return prihibited_method_response(request)
+        return prohibited_method_response(request)
 
     @action(detail=False, methods=["post"], url_path="set_email")
     def set_email(self, request):
-        return prihibited_method_response(request)
+        return prohibited_method_response(request)
 
     def get_queryset(self):
         """

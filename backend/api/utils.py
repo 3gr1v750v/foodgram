@@ -53,7 +53,7 @@ def ingredients_export(self, request, ingredients):
     return response
 
 
-def prihibited_method_response(request):
+def prohibited_method_response(request):
     message = "Обращение к эндпоинту с данным методом не разрешено."
     return Response(
         {"detail": message}, status=status.HTTP_405_METHOD_NOT_ALLOWED
