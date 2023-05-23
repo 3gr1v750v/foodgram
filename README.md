@@ -549,6 +549,26 @@ d. Проверьте, что данные скопировались корре
 sudo docker exec <container_name> ls /usr/share/nginx/html/api/docs
 ```
 
+### Бекап и миграция базы данных
+
+- Вы также можете создать дамп (резервную копию) базы:
+
+``` docker compose exec backend python manage.py dumpdata > fixtures.json ```
+
+- Чтобы скопировать файл базы данных в контейнер выполните команду из директории папки ``` infra/ ```:
+
+a. Найдите id контейнера backend
+```
+docker container ls
+```
+
+b. Выполните команду миграции
+``` docker cp fixtures.json <container_id>:app/ ```
+
+- Выполните миграцию базы данных из директории папки ``` infra/ ```:
+
+``` docker compose exec backend python manage.py loaddata fixtures.json ```
+
 ### Github Actions CI:
 
 Запуск workflow осуществляется тригером 'push' в любую ветку репозитория:
