@@ -34,7 +34,7 @@ INSTALLED_APPS = [
     "djoser",
     "recipes.apps.RecipesConfig",
     "users.apps.UsersConfig",
-    "api.apps.ApiConfig"
+    "api.apps.ApiConfig",
 ]
 
 MIDDLEWARE = [
@@ -172,12 +172,12 @@ DJOSER = {
     "PERMISSIONS": {
         'user': ['rest_framework.permissions.IsAuthenticated'],
         'user_list': ['rest_framework.permissions.AllowAny'],
-        'activation': [''],
-        'password_reset': [''],
-        'password_reset_confirm': [''],
-        'username_reset': [''],
-        'username_reset_confirm': [''],
-        'set_username': [''],
+        'activation': ['api.permissions.DjoserEndpointsLockResponse'],
+        'password_reset': ['api.permissions.DjoserEndpointsLockResponse'],
+        'password_reset_confirm': ['api.permissions.DjoserEndpointsLockResponse'],
+        'username_reset': ['api.permissions.DjoserEndpointsLockResponse'],
+        'username_reset_confirm': ['api.permissions.DjoserEndpointsLockResponse'],
+        'set_username': ['api.permissions.DjoserEndpointsLockResponse'],
     },
     "SERIALIZERS": {
         "current_user": "api.serializers.CustomUserSerializer",

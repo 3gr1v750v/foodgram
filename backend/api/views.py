@@ -62,7 +62,6 @@ class CustomUserViewSet(UserViewSet):
     def destroy(self, request, *args, **kwargs):
         return prohibited_method_response(request)
 
-
     def get_queryset(self):
         """
         Переопределение запроса набора объектов пользователей (по умолчанию
