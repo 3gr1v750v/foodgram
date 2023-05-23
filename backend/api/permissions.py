@@ -11,6 +11,7 @@ class AuthorOrReadOnly(permissions.BasePermission):
             or obj.author == request.user
         )
 
+
 class DjoserEndpointsLockResponse(permissions.BasePermission):
     """Определение логики разрешения доступа к отдельным эндпоинтам Djoser."""
     def has_permission(self, request, view):
