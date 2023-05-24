@@ -11,7 +11,7 @@
 [![docker](https://img.shields.io/badge/-Docker-464646?style=flat-square&logo=docker)](https://www.docker.com/)
 [![GitHub%20Actions](https://img.shields.io/badge/-GitHub%20Actions-464646?style=flat-square&logo=GitHub%20actions)](https://github.com/features/actions)
 
-![foodgram_main_page_screenshot](https://github.com/3gr1v750v/foodgram-project-react/assets/110385345/64352295-3d16-4051-a89e-7732f724d09d)
+![foodgram_main_page_screenshot](https://github.com/3gr1v750v/foodgram/assets/110385345/8eeb1f3d-9bcb-4e71-ab63-3b270f1f3cc4)
 
 ## Описание проекта
 Приложение Foodgram ("Продуктовый помощник"): сайт, на котором пользователи 
