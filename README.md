@@ -350,7 +350,7 @@ http://localhost/signin
 1. Скопируйте репозиторий и перейдите в него в командной строке:
 
 ```
-git clone https://github.com/3gr1v750v/foodgram-project-react
+git clone https://github.com/3gr1v750v/foodgram
 ```
 
 ```
